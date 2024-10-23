@@ -1,11 +1,92 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ashish Rana - Projects</title>
-    <link rel="stylesheet" href="css/styles.css"> <!-- Add your custom styles -->
+    <link rel="stylesheet" href="css/styles.css"> <!-- Custom styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        nav.header {
+            background-color: #333;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        nav .menu {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+        }
+        nav .menu__item {
+            margin: 0 15px;
+        }
+        nav .link {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.3s;
+        }
+        nav .link:hover {
+            color: #ff4081; /* Highlight color */
+        }
+        .section__title {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.5rem;
+            color: #ff4081;
+        }
+        .project-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .project {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .project:hover {
+            transform: translateY(-5px);
+        }
+        .project-image {
+            width: 100%;
+            height: auto;
+        }
+        .project-title {
+            font-size: 1.5rem;
+            padding: 15px;
+            text-align: center;
+            color: #333;
+        }
+        .project-description {
+            padding: 0 15px 15px;
+            text-align: center;
+            color: #666;
+        }
+        footer.footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #333;
+            color: white;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
 </head>
 
 <body>
@@ -37,6 +118,5 @@
     </div>
 
     <footer class="footer">© 2024, Ashish Rana</footer>
-    <script src="js/scripts.js"></script> <!-- Add any scripts here -->
 </body>
 </html>
