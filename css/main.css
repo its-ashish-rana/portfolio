@@ -12,3 +12,13 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
 }
+
+@media (max-width: 768px) {
+   .menu {
+       display: block;
+   }
+}
+
+.menu {
+    z-index: 10;
+}
