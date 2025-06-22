@@ -25,6 +25,8 @@
       <link rel="author" href="humans.txt">
     
   </head>
+
+
   
   <body>
 <nav class="header">
@@ -68,6 +70,24 @@
   <h3>🎯 Book a 1:1 Call with Me</h3>
   <iframe src="https://topmate.io/ashish_rana10/widget" width="350" height="500" style="border:none;"></iframe>
 </section>
+
+
+
+<!-- 🔘 Topmate Popup Button JS Custom code apply css and script -->
+<div style="text-align: center; margin: 40px 0;">
+  <button onclick="openTopmateModal()" class="topmate-modal-btn">
+    🎯 Book a 1:1 Call with Me
+  </button>
+</div>
+
+<!-- 📦 Modal -->
+<div id="topmateModal" class="topmate-modal">
+  <div class="topmate-modal-content">
+    <span class="topmate-close" onclick="closeTopmateModal()">&times;</span>
+    <iframe src="https://topmate.io/ashish_rana10" width="100%" height="100%" frameborder="0"></iframe>
+  </div>
+</div>
+
 
 
 
@@ -198,6 +218,26 @@ Roles And Responsibilities</b></br></p>
     <script src="js/scribbler.js"></script>
     <script src="js/main.js"></script>
         
+
+
+<script>
+  function openTopmateModal() {
+    document.getElementById('topmateModal').style.display = 'block';
+  }
+
+  function closeTopmateModal() {
+    document.getElementById('topmateModal').style.display = 'none';
+  }
+
+  // Optional: Close on background click
+  window.onclick = function(event) {
+    const modal = document.getElementById('topmateModal');
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
+</script>
+
   
   </body>
 </html>
