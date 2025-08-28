@@ -29,7 +29,19 @@
         dlEl.classList.add('hidden');
       }
     }
-    document.addEventListener('DOMContentLoaded', guard);
+    async function updateDownloadCount() {
+      try {
+        var ns = 'its-ashish-rana-portfolio';
+        var key = 'ebook_downloads_v1';
+        // create namespace/key if needed
+        await fetch('https://api.countapi.xyz/create?namespace=' + ns + '&key=' + key + '&value=0', { method: 'GET' });
+        var res = await fetch('https://api.countapi.xyz/hit/' + ns + '/' + key);
+        var json = await res.json();
+        var countEl = document.getElementById('download-count');
+        if (countEl && json && json.value != null) { countEl.textContent = json.value; }
+      } catch(e) { console.warn('CountAPI error', e); }
+    }
+    document.addEventListener('DOMContentLoaded', function(){ guard(); });
   </script>
 </head>
 <body>
@@ -49,7 +61,8 @@
     </div>
     <div id="download" class="card hidden">
       <p>Thanks for your support! Click below to download.</p>
-      <a class="cta" href="docs/sample-ebook.pdf" download>Download eBook PDF</a>
+      <a class="cta" href="docs/sample-ebook.pdf" download onclick="updateDownloadCount()">Download eBook PDF</a>
+      <p style="margin-top:8px;">Download: <span id="download-count">0</span></p>
     </div>
   </div>
   <footer class="footer">© 2025, Ashish Rana</footer>

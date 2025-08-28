@@ -45,6 +45,7 @@
       <p class="note" id="product-note" style="margin-top:6px;">Complete the payment below to unlock your download.</p>
       <div id="post-upi-actions" style="margin-top:10px; display:none;">
         <a id="mark-paid" class="button" style="padding:10px 16px; background:#1e88e5; color:#fff; border-radius:6px; text-decoration:none;" href="#">I've completed the UPI payment</a>
+        <p class="note" id="manual-warning" style="margin-top:6px; display:none;">Manual unlock is disabled for this product. Use PayPal to auto-unlock, or contact support with payment proof.</p>
       </div>
     </div>
 
@@ -167,17 +168,25 @@
           priceEl.textContent = '₹' + amount;
         }
 
-        // After UPI click, show the "I've paid" action
+        // After UPI click, show info but disable manual unlock for ebook
         a.addEventListener('click', function(){
-          setTimeout(function(){ postActions.style.display = 'block'; }, 400);
+          setTimeout(function(){
+            postActions.style.display = 'block';
+            var warn = document.getElementById('manual-warning');
+            if (product === 'ebook') {
+              warn.style.display = 'block';
+              document.getElementById('mark-paid').style.display = 'none';
+            }
+          }, 400);
         });
 
-        // Mark as paid flow (client-side unlock)
+        // Mark as paid flow (only for non-ebook products)
         var markPaid = document.getElementById('mark-paid');
         markPaid.addEventListener('click', function(e){
           e.preventDefault();
+          if (product === 'ebook') return; // guarded
           try {
-            if (product === 'ebook') { localStorage.setItem('ebook_paid', 'true'); }
+            localStorage.setItem(product + '_paid', 'true');
           } catch(err) {}
           if (redirect) { window.location.href = redirect; }
         });
