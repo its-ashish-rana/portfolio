@@ -58,7 +58,7 @@
         <div style="margin-top:12px;">
           <a class="button" style="padding:10px 16px; background:#2e7d32; color:#fff; border-radius:6px; text-decoration:none;" id="upi-intent" href="#">Pay via UPI App</a>
         </div>
-        <p class="note" style="margin-top:8px;">If the link does not open, copy this UPI ID in your app: <strong id="upi-id-text">example@upi</strong></p>
+        <p class="note" style="margin-top:8px;">If the link does not open, copy this UPI ID in your app: <strong id="upi-id-text">6394697442@ptaxis</strong></p>
       </section>
     </div>
 
@@ -98,17 +98,30 @@
 
     // UPI intent: replace with your actual UPI ID and suggested amount
     (function(){
-      var upiId = 'example@upi'; // TODO: replace with real UPI ID
+      var upiId = '6394697442@ptaxis';
       var amount = '100'; // INR
-      var name = 'Ashish%20Rana';
-      var note = 'Support%20donation';
+      var name = 'Ashish Rana';
+      var note = 'Support donation';
       document.getElementById('upi-id-text').textContent = upiId;
-      var intent = 'upi://pay?pa=' + encodeURIComponent(upiId) + '&pn=' + name + '&tn=' + note + '&am=' + encodeURIComponent(amount) + '&cu=INR';
+      var intent = 'upi://pay?pa=' + encodeURIComponent(upiId)
+        + '&pn=' + encodeURIComponent(name)
+        + '&tn=' + encodeURIComponent(note)
+        + '&am=' + encodeURIComponent(amount)
+        + '&cu=INR';
       var a = document.getElementById('upi-intent');
       a.setAttribute('href', intent);
       var qrImg = document.getElementById('upi-qr');
       var qrApi = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(intent);
       qrImg.setAttribute('src', qrApi);
+
+      // Desktop notice: UPI links open only on mobile devices
+      var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!isMobile) {
+        var noteEl = document.createElement('p');
+        noteEl.className = 'note';
+        noteEl.textContent = 'Tip: Open this page on your phone or scan the QR to pay via UPI.';
+        document.querySelector('.upi-box').appendChild(noteEl);
+      }
     })();
   </script>
 </body>
