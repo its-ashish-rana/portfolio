@@ -77,7 +77,7 @@
         <div style="margin-top:12px;">
           <a class="button" style="padding:10px 16px; background:#2e7d32; color:#fff; border-radius:6px; text-decoration:none;" id="upi-intent" href="#">Pay via UPI App</a>
         </div>
-        <p class="note" style="margin-top:8px;">If the link does not open, copy this UPI ID in your app: <strong id="upi-id-text">6394697442@ptaxis</strong></p>
+        <p class="note" style="margin-top:8px;">Pay directly with UPI ID: <a id="upi-id-link" href="#" style="color:#0a66c2; text-decoration:underline;">6394697442@ptaxis</a></p>
         <p class="note" style="margin-top:8px;">Already paid via UPI? <a href="upi-claim.html">Submit your UPI reference</a> and we'll send the link.</p>
       </section>
     </div>
@@ -143,7 +143,8 @@
       var note = (product === 'ebook') ? 'Software Engineer Guide Book' : 'Support donation';
       var tr = 'order-' + Math.random().toString(36).slice(2,10);
       var redirect = getParam('redirect');
-      document.getElementById('upi-id-text').textContent = upiId;
+      var upiIdLink = document.getElementById('upi-id-link');
+      upiIdLink.textContent = upiId;
       var intent = 'upi://pay?pa=' + encodeURIComponent(upiId)
         + '&pn=' + encodeURIComponent(name)
         + '&tn=' + encodeURIComponent(note)
@@ -152,6 +153,7 @@
         + '&tr=' + encodeURIComponent(tr);
       var a = document.getElementById('upi-intent');
       a.setAttribute('href', intent);
+      upiIdLink.setAttribute('href', intent);
       var qrImg = document.getElementById('upi-qr');
       var qrApi = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(intent);
       qrImg.setAttribute('src', qrApi);
