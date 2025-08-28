@@ -14,9 +14,9 @@ body {
 }
 
 @media (max-width: 768px) {
-   .menu {
-       display: block;
-   }
+   .menu { display: block; }
+   .hero__terminal { width: 90% !important; }
+   .img-with-text img { max-width: 60% !important; margin-left: 0; }
 }
 
 .menu {
