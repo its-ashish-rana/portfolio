@@ -1,0 +1,25 @@
+name = "portfolio-worker"
+main = "worker.js"
+compatibility_date = "2024-08-01"
+
+# Uncomment and fill after creating KV in Cloudflare dashboard
+# [[kv_namespaces]]
+# binding = "TOKENS"
+# id = "<kv-id>"
+# preview_id = "<kv-preview-id>"
+
+[vars]
+# Set in dashboard or with wrangler secret
+PAYPAL_ENV = "sandbox"
+PAYPAL_CLIENT_ID = ""
+PAYPAL_SECRET = ""
+TOKEN_SECRET = "replace_with_long_random_secret"
+TOKEN_TTL_SECONDS = 3600
+# Where the Worker is deployed, e.g. https://your-subdomain.workers.dev
+DOWNLOAD_BASE = ""
+# Public URL to the PDF (temporary) or R2 signed URL
+DOWNLOAD_TARGET = "https://<your-gh-pages-domain>/docs/sample-ebook.pdf"
+# Optional email notification for UPI claims via MailChannels
+MAIL_TO = ""
+MAIL_FROM = ""
+

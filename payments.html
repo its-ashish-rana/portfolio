@@ -82,6 +82,8 @@
   <script src="js/scribbler.js"></script>
   <script>
     function getParam(name){ try { return new URL(window.location.href).searchParams.get(name); } catch(e){ return null; } }
+    // Set your deployed Cloudflare Worker base URL below, e.g., https://your-subdomain.workers.dev
+    var WORKER_BASE = '';
     // Stripe: Replace with your actual Checkout Session/Link
     (function(){
       var stripeCheckoutLink = document.getElementById('stripe-checkout-link');
@@ -93,7 +95,7 @@
       });
     })();
 
-    // PayPal: simple client-side button for a one-time payment demo
+    // PayPal: verify on Cloudflare Worker and redirect to signed download URL
     if (window.paypal) {
       paypal.Buttons({
         style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
@@ -102,15 +104,23 @@
           return actions.order.create({ purchase_units: [{ amount: { value: price }, description: 'Purchase' }] });
         },
         onApprove: function(data, actions) {
-          return actions.order.capture().then(function(details) {
-            try {
-              var product = getParam('product');
-              var redirect = getParam('redirect');
-              if (product === 'ebook') { localStorage.setItem('ebook_paid', 'true'); }
-              if (redirect) { window.location.href = redirect; return; }
-            } catch(e) {}
-            alert('Thanks, ' + details.payer.name.given_name + '! Payment successful.');
-          });
+          var product = getParam('product') || 'purchase';
+          var expectedAmount = getParam('price') || '5.00';
+          if (!WORKER_BASE) {
+            // Fallback: client capture without verification
+            return actions.order.capture().then(function(){ alert('Payment captured, but Worker not configured.'); });
+          }
+          return fetch(WORKER_BASE + '/paypal/verify', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ orderId: data.orderID, expectedAmount: expectedAmount, product: product })
+          }).then(function(r){ return r.json(); }).then(function(json){
+            if (json && json.ok && json.downloadUrl) {
+              window.location.href = json.downloadUrl;
+            } else {
+              alert('Payment verification failed. Please contact support with your Order ID: ' + data.orderID);
+            }
+          }).catch(function(){ alert('Network error verifying payment. Please try again.'); });
         },
         onError: function(err) { console.error('PayPal error', err); alert('Payment failed. Please try again.'); }
       }).render('#paypal-button-container');
