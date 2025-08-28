@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments - Support Ashish</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,600,700,800,900" rel="stylesheet">
+    <link rel="stylesheet" href="css/scribbler-global.css">
+    <link rel="stylesheet" href="css/scribbler-landing.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+      .payments-container { max-width: 980px; margin: 40px auto; padding: 0 16px; }
+      .card { background: var(--color-white, #fff); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.06); padding: 24px; margin-bottom: 20px; }
+      .card h2 { margin-top: 0; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+      .upi-box { text-align: center; }
+      .upi-qr { width: 240px; height: 240px; object-fit: contain; border-radius: 8px; background: #fafafa; border: 1px solid #eee; }
+      .note { font-size: 0.9rem; color: #666; }
+      .pay-buttons a { display: inline-block; margin-right: 10px; margin-bottom: 10px; }
+      .paypal-container { text-align: center; }
+      .back-link { margin: 16px 0; display: inline-block; }
+    </style>
+</head>
+<body>
+  <nav class="header">
+    <ul class="menu">
+      <li class="menu__item"><a href="index.html" class="link link--dark"><i class="fas fa-home"></i> Home</a></li>
+      <li class="menu__item"><a href="timeline.html" class="link link--dark"><i class="fas fa-history"></i> Timeline</a></li>
+      <li class="menu__item"><a href="projects.html" class="link link--dark"><i class="fas fa-project-diagram"></i> Projects</a></li>
+      <li class="menu__item"><a href="payments.html" class="link link--dark"><i class="fas fa-credit-card"></i> Payments</a></li>
+    </ul>
+  </nav>
+
+  <div class="payments-container">
+    <h1 class="section__title">Support My Work</h1>
+    <p>Choose your preferred payment method below.</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2><i class="fab fa-stripe"></i> Stripe</h2>
+        <p class="note">Redirects to a secure Stripe Checkout page.</p>
+        <div class="pay-buttons">
+          <a class="button" style="padding:10px 16px; background:#635bff; color:#fff; border-radius:6px; text-decoration:none;" href="#" id="stripe-checkout-link">Pay with Stripe</a>
+        </div>
+      </section>
+
+      <section class="card paypal-container">
+        <h2><i class="fab fa-paypal" style="color:#003087"></i> PayPal</h2>
+        <p class="note">Use PayPal for international cards and balances.</p>
+        <div id="paypal-button-container"></div>
+      </section>
+
+      <section class="card upi-box">
+        <h2>UPI</h2>
+        <p class="note">Scan the QR or tap the UPI link on mobile.</p>
+        <img class="upi-qr" id="upi-qr" src="" alt="UPI QR"/>
+        <div style="margin-top:12px;">
+          <a class="button" style="padding:10px 16px; background:#2e7d32; color:#fff; border-radius:6px; text-decoration:none;" id="upi-intent" href="#">Pay via UPI App</a>
+        </div>
+        <p class="note" style="margin-top:8px;">If the link does not open, copy this UPI ID in your app: <strong id="upi-id-text">example@upi</strong></p>
+      </section>
+    </div>
+
+    <a class="back-link link link--dark" href="index.html"><i class="fas fa-arrow-left"></i> Back to Home</a>
+  </div>
+
+  <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
+  <script>
+    // Stripe: Replace with your actual Checkout Session/Link
+    (function(){
+      var stripeCheckoutLink = document.getElementById('stripe-checkout-link');
+      // Placeholder: replace with your real Stripe payment link or session redirect
+      var checkoutUrl = 'https://buy.stripe.com/test_1234567890abcdef';
+      stripeCheckoutLink.addEventListener('click', function(e){
+        e.preventDefault();
+        window.location.href = checkoutUrl;
+      });
+    })();
+
+    // PayPal: simple client-side button for a one-time payment demo
+    if (window.paypal) {
+      paypal.Buttons({
+        style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
+        createOrder: function(data, actions) {
+          return actions.order.create({
+            purchase_units: [{ amount: { value: '5.00' }, description: 'Support donation' }]
+          });
+        },
+        onApprove: function(data, actions) {
+          return actions.order.capture().then(function(details) {
+            alert('Thanks, ' + details.payer.name.given_name + '! Payment successful.');
+          });
+        },
+        onError: function(err) { console.error('PayPal error', err); alert('Payment failed. Please try again.'); }
+      }).render('#paypal-button-container');
+    }
+
+    // UPI intent: replace with your actual UPI ID and suggested amount
+    (function(){
+      var upiId = 'example@upi'; // TODO: replace with real UPI ID
+      var amount = '100'; // INR
+      var name = 'Ashish%20Rana';
+      var note = 'Support%20donation';
+      document.getElementById('upi-id-text').textContent = upiId;
+      var intent = 'upi://pay?pa=' + encodeURIComponent(upiId) + '&pn=' + name + '&tn=' + note + '&am=' + encodeURIComponent(amount) + '&cu=INR';
+      var a = document.getElementById('upi-intent');
+      a.setAttribute('href', intent);
+      var qrImg = document.getElementById('upi-qr');
+      var qrApi = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(intent);
+      qrImg.setAttribute('src', qrApi);
+    })();
+  </script>
+</body>
+</html>
