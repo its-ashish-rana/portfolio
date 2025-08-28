@@ -131,6 +131,7 @@ var icon = get('.toggle');
 
 window.addEventListener('load', function(){
   function showNav() {
+    if (!topNav || !icon) return;
     if (topNav.className === 'menu') {
       topNav.className += ' responsive';
       icon.className += ' open';
@@ -139,5 +140,7 @@ window.addEventListener('load', function(){
       icon.classList.remove('open');
     }
   }
-  icon.addEventListener('click', showNav);
+  if (icon) {
+    icon.addEventListener('click', showNav);
+  }
 });

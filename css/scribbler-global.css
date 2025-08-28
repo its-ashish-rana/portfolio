@@ -407,6 +407,25 @@ table td:first-child {
   width: 50%;
 }
 
+/* Responsive adjustments */
+@media screen and (max-width: 1024px) {
+  .wrapper { width: 70%; }
+}
+
+@media screen and (max-width: 768px) {
+  html, body { font-size: 16px; }
+  .wrapper { width: 90%; }
+  .name { position: static; margin: 16px; left: auto; }
+  .container { margin: 20px auto; padding: 0 12px; margin-left: 0; }
+  img { max-width: 100%; margin-left: 0; float: none; display: block; margin-bottom: 16px; }
+  .text { width: 100%; }
+}
+
+@media screen and (max-width: 480px) {
+  .menu__item { padding: 0.5rem; }
+  .section__title { font-size: 1.4rem; }
+}
+
 .footer {
   text-align: center;
   background-color: white;
