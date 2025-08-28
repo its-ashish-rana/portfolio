@@ -104,6 +104,19 @@ export default {
         }
         return json({ ok: true, id });
       }
+      if (url.pathname === '/admin/token' && request.method === 'POST') {
+        const auth = request.headers.get('authorization') || '';
+        const expected = 'Bearer ' + (env.ADMIN_KEY || '');
+        if (!env.ADMIN_KEY || auth !== expected) return json({ error: 'unauthorized' }, 401);
+        const body = await request.json();
+        const product = body.product || 'ebook';
+        const amount = String(body.amount || '99');
+        const ttlSec = parseInt(env.TOKEN_TTL_SECONDS || '3600');
+        const token = await signToken({ product, amount, exp: nowSec() + ttlSec }, env.TOKEN_SECRET);
+        const base = env.DOWNLOAD_BASE || url.origin;
+        const downloadUrl = base + '/download?token=' + encodeURIComponent(token);
+        return json({ ok: true, token, downloadUrl });
+      }
       return json({ error: 'not_found' }, 404);
     } catch (e) {
       return json({ error: 'server_error', message: String(e) }, 500);

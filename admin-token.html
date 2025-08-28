@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin: Generate Download Token</title>
+  <link rel="stylesheet" href="css/scribbler-global.css">
+  <link rel="stylesheet" href="css/scribbler-landing.css">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .wrap { max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    .card { background:#fff; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.06); padding:20px; }
+    input { width:100%; padding:10px; margin:6px 0; border:1px solid #e1e1e1; border-radius:6px; }
+    .cta { display:inline-block; margin-top: 8px; background:#1e88e5; color:#fff; padding:10px 18px; border-radius:8px; text-decoration:none; }
+    code { user-select: all; }
+  </style>
+  <script>
+    async function gen(e){
+      e.preventDefault();
+      const form = e.target.closest('form');
+      const base = form.worker.value.trim();
+      const key = form.key.value.trim();
+      const product = form.product.value.trim() || 'ebook';
+      const amount = form.amount.value.trim() || '99';
+      if (!base || !key) { alert('Enter Worker URL and Admin Key'); return; }
+      try {
+        const res = await fetch(base + '/admin/token', {
+          method: 'POST', headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key },
+          body: JSON.stringify({ product, amount })
+        });
+        const j = await res.json();
+        if (j && j.ok) {
+          document.getElementById('out').textContent = j.downloadUrl;
+        } else {
+          alert('Error: ' + (j && j.error ? j.error : 'unknown'));
+        }
+      } catch(e){ alert('Network error'); }
+    }
+  </script>
+</head>
+<body>
+  <nav class="header">
+    <ul class="menu">
+      <div class="menu__item toggle"><span></span></div>
+      <li class="menu__item"><a href="index.html" class="link link--dark">Home</a></li>
+    </ul>
+  </nav>
+  <div class="wrap">
+    <h1 class="section__title">Admin: Generate Token</h1>
+    <div class="card">
+      <form onsubmit="gen(event)">
+        <label>Worker Base URL (e.g., https://your-subdomain.workers.dev)</label>
+        <input name="worker" required/>
+        <label>Admin Key</label>
+        <input name="key" required/>
+        <label>Product</label>
+        <input name="product" value="ebook"/>
+        <label>Amount (₹)</label>
+        <input name="amount" value="99"/>
+        <button class="cta" type="submit">Generate</button>
+      </form>
+      <p style="margin-top:8px;">One-time Download URL:</p>
+      <code id="out"></code>
+    </div>
+  </div>
+  <footer class="footer">© 2025, Ashish Rana</footer>
+  <script src="js/scribbler.js"></script>
+</body>
+</html>

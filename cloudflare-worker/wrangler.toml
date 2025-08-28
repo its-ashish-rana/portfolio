@@ -26,4 +26,5 @@ MAIL_FROM = ""
 # Razorpay
 RAZORPAY_KEY_ID = ""
 RAZORPAY_KEY_SECRET = ""
+ADMIN_KEY = ""
 
