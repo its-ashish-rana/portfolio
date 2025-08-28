@@ -37,8 +37,16 @@
   </nav>
 
   <div class="payments-container">
-    <h1 class="section__title">Support My Work</h1>
-    <p>Choose your preferred payment method below.</p>
+    <h1 class="section__title" id="checkout-title">Support My Work</h1>
+    <div id="product-card" class="card" style="display:none;">
+      <h2 id="product-title" style="margin:0 0 6px 0;">Checkout</h2>
+      <p class="note" id="product-subtitle" style="margin:0 0 8px 0;"></p>
+      <div class="price" id="product-price" style="font-weight:800; font-size:1.4rem;"></div>
+      <p class="note" id="product-note" style="margin-top:6px;">Complete the payment below to unlock your download.</p>
+      <div id="post-upi-actions" style="margin-top:10px; display:none;">
+        <a id="mark-paid" class="button" style="padding:10px 16px; background:#1e88e5; color:#fff; border-radius:6px; text-decoration:none;" href="#">I've completed the UPI payment</a>
+      </div>
+    </div>
 
     <div class="grid">
       <section class="card">
@@ -72,6 +80,7 @@
   <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
   <script src="js/scribbler.js"></script>
   <script>
+    function getParam(name){ try { return new URL(window.location.href).searchParams.get(name); } catch(e){ return null; } }
     // Stripe: Replace with your actual Checkout Session/Link
     (function(){
       var stripeCheckoutLink = document.getElementById('stripe-checkout-link');
@@ -88,12 +97,17 @@
       paypal.Buttons({
         style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
         createOrder: function(data, actions) {
-          return actions.order.create({
-            purchase_units: [{ amount: { value: '5.00' }, description: 'Support donation' }]
-          });
+          var price = getParam('price') || '5.00';
+          return actions.order.create({ purchase_units: [{ amount: { value: price }, description: 'Purchase' }] });
         },
         onApprove: function(data, actions) {
           return actions.order.capture().then(function(details) {
+            try {
+              var product = getParam('product');
+              var redirect = getParam('redirect');
+              if (product === 'ebook') { localStorage.setItem('ebook_paid', 'true'); }
+              if (redirect) { window.location.href = redirect; return; }
+            } catch(e) {}
             alert('Thanks, ' + details.payer.name.given_name + '! Payment successful.');
           });
         },
@@ -104,9 +118,12 @@
     // UPI intent: replace with your actual UPI ID and suggested amount
     (function(){
       var upiId = '6394697442@ptaxis';
-      var amount = '100'; // INR
+      var amount = getParam('price') || '100'; // INR
       var name = 'Ashish Rana';
-      var note = 'Support donation';
+      var product = getParam('product');
+      var mrp = getParam('mrp');
+      var note = (product === 'ebook') ? 'Software Engineer Guide Book' : 'Support donation';
+      var redirect = getParam('redirect');
       document.getElementById('upi-id-text').textContent = upiId;
       var intent = 'upi://pay?pa=' + encodeURIComponent(upiId)
         + '&pn=' + encodeURIComponent(name)
@@ -126,6 +143,44 @@
         noteEl.className = 'note';
         noteEl.textContent = 'Tip: Open this page on your phone or scan the QR to pay via UPI.';
         document.querySelector('.upi-box').appendChild(noteEl);
+      }
+
+      // Product-specific header
+      if (product) {
+        var card = document.getElementById('product-card');
+        var title = document.getElementById('product-title');
+        var subtitle = document.getElementById('product-subtitle');
+        var priceEl = document.getElementById('product-price');
+        var postActions = document.getElementById('post-upi-actions');
+        card.style.display = 'block';
+        document.getElementById('checkout-title').textContent = 'Checkout';
+        if (product === 'ebook') {
+          title.textContent = 'Software Engineer Guide Book';
+          subtitle.textContent = 'Reviewed by FANG/MANG engineers and IIT alumni';
+        } else {
+          title.textContent = 'Your Purchase';
+          subtitle.textContent = '';
+        }
+        if (mrp && amount) {
+          priceEl.innerHTML = '<s>₹' + mrp + '</s> ₹' + amount;
+        } else if (amount) {
+          priceEl.textContent = '₹' + amount;
+        }
+
+        // After UPI click, show the "I've paid" action
+        a.addEventListener('click', function(){
+          setTimeout(function(){ postActions.style.display = 'block'; }, 400);
+        });
+
+        // Mark as paid flow (client-side unlock)
+        var markPaid = document.getElementById('mark-paid');
+        markPaid.addEventListener('click', function(e){
+          e.preventDefault();
+          try {
+            if (product === 'ebook') { localStorage.setItem('ebook_paid', 'true'); }
+          } catch(err) {}
+          if (redirect) { window.location.href = redirect; }
+        });
       }
     })();
   </script>
