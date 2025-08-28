@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit UPI Payment Reference</title>
+  <link rel="stylesheet" href="css/scribbler-global.css">
+  <link rel="stylesheet" href="css/scribbler-landing.css">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .wrap { max-width: 680px; margin: 40px auto; padding: 0 16px; }
+    .card { background:#fff; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.06); padding:20px; }
+    input, select, textarea { width:100%; padding:10px; margin:6px 0; border:1px solid #e1e1e1; border-radius:6px; }
+    .cta { display:inline-block; margin-top: 8px; background:#1e88e5; color:#fff; padding:10px 18px; border-radius:8px; text-decoration:none; }
+  </style>
+  <script>
+    async function submitClaim(e){
+      e.preventDefault();
+      const form = e.target.closest('form');
+      const payload = {
+        name: form.name.value,
+        email: form.email.value,
+        upiId: form.upiId.value,
+        amount: form.amount.value,
+        referenceId: form.referenceId.value,
+        product: 'ebook'
+      };
+      try {
+        if (!window.WORKER_BASE) { alert('Server not configured.'); return; }
+        const res = await fetch(window.WORKER_BASE + '/upi/claim', { method: 'POST', headers: { 'content-type':'application/json' }, body: JSON.stringify(payload) });
+        const json = await res.json();
+        if (json && json.ok) {
+          alert('Submitted. We will verify and send your download link.');
+          window.location.href = 'ebook.html';
+        } else {
+          alert('Submission failed. Please try again later.');
+        }
+      } catch(e){ alert('Network error.'); }
+    }
+  </script>
+</head>
+<body>
+  <nav class="header">
+    <ul class="menu">
+      <div class="menu__item toggle"><span></span></div>
+      <li class="menu__item"><a href="index.html" class="link link--dark">Home</a></li>
+      <li class="menu__item"><a href="ebook.html" class="link link--dark">eBook</a></li>
+    </ul>
+  </nav>
+  <div class="wrap">
+    <h1 class="section__title">Submit UPI Reference</h1>
+    <div class="card">
+      <form onsubmit="submitClaim(event)">
+        <label>Name</label>
+        <input name="name" required/>
+        <label>Email</label>
+        <input name="email" type="email" required/>
+        <label>Your UPI ID (optional)</label>
+        <input name="upiId"/>
+        <label>Amount Paid (₹)</label>
+        <input name="amount" value="99" required/>
+        <label>UPI Reference/UTR</label>
+        <input name="referenceId" required/>
+        <button class="cta" type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+  <footer class="footer">© 2025, Ashish Rana</footer>
+  <script>window.WORKER_BASE='';</script>
+  <script src="js/scribbler.js"></script>
+</body>
+</html>

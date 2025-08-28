@@ -64,6 +64,12 @@
         <div id="paypal-button-container"></div>
       </section>
 
+      <section class="card paypal-container">
+        <h2><i class="fas fa-university" style="color:#0E50A1"></i> Razorpay (UPI)</h2>
+        <p class="note">Recommended for UPI. Click to pay ₹<span id="rzp-amount">99</span>.</p>
+        <button id="rzp-pay" class="button" style="padding:10px 16px; background:#0E50A1; color:#fff; border-radius:6px; border:0;">Pay via Razorpay UPI</button>
+      </section>
+
       <section class="card upi-box">
         <h2>UPI</h2>
         <p class="note">Scan the QR or tap the UPI link on mobile.</p>
@@ -72,6 +78,7 @@
           <a class="button" style="padding:10px 16px; background:#2e7d32; color:#fff; border-radius:6px; text-decoration:none;" id="upi-intent" href="#">Pay via UPI App</a>
         </div>
         <p class="note" style="margin-top:8px;">If the link does not open, copy this UPI ID in your app: <strong id="upi-id-text">6394697442@ptaxis</strong></p>
+        <p class="note" style="margin-top:8px;">Already paid via UPI? <a href="upi-claim.html">Submit your UPI reference</a> and we'll send the link.</p>
       </section>
     </div>
 
@@ -134,13 +141,15 @@
       var product = getParam('product');
       var mrp = getParam('mrp');
       var note = (product === 'ebook') ? 'Software Engineer Guide Book' : 'Support donation';
+      var tr = 'order-' + Math.random().toString(36).slice(2,10);
       var redirect = getParam('redirect');
       document.getElementById('upi-id-text').textContent = upiId;
       var intent = 'upi://pay?pa=' + encodeURIComponent(upiId)
         + '&pn=' + encodeURIComponent(name)
         + '&tn=' + encodeURIComponent(note)
         + '&am=' + encodeURIComponent(amount)
-        + '&cu=INR';
+        + '&cu=INR'
+        + '&tr=' + encodeURIComponent(tr);
       var a = document.getElementById('upi-intent');
       a.setAttribute('href', intent);
       var qrImg = document.getElementById('upi-qr');
@@ -201,6 +210,68 @@
           if (redirect) { window.location.href = redirect; }
         });
       }
+    })();
+
+    // Razorpay Checkout via Worker
+    (function(){
+      var btn = document.getElementById('rzp-pay');
+      var amount = getParam('price') || '99';
+      var product = getParam('product') || 'ebook';
+      document.getElementById('rzp-amount').textContent = amount;
+      if (!btn) return;
+      btn.addEventListener('click', async function(){
+        if (!WORKER_BASE) { alert('Server not configured.'); return; }
+        try {
+          const res = await fetch(WORKER_BASE + '/razorpay/order', {
+            method: 'POST', headers: { 'content-type':'application/json' },
+            body: JSON.stringify({ amount, currency: 'INR', notes: { product } })
+          });
+          const json = await res.json();
+          if (!json.ok) { alert('Order creation failed'); return; }
+          const order = json.order;
+          const key = json.keyId;
+          // Load Razorpay Checkout if not present
+          if (!window.Razorpay) {
+            await new Promise(function(resolve, reject){
+              var s = document.createElement('script');
+              s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+              s.onload = resolve; s.onerror = reject; document.body.appendChild(s);
+            });
+          }
+          var rzp = new Razorpay({
+            key,
+            amount: order.amount,
+            currency: order.currency,
+            name: 'Software Engineer Guide',
+            description: product,
+            order_id: order.id,
+            handler: async function (response) {
+              try {
+                const v = await fetch(WORKER_BASE + '/razorpay/verify', {
+                  method: 'POST', headers: { 'content-type':'application/json' },
+                  body: JSON.stringify({
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature,
+                    expectedAmount: amount,
+                    product
+                  })
+                });
+                const j = await v.json();
+                if (j && j.ok && j.downloadUrl) {
+                  window.location.href = j.downloadUrl;
+                } else {
+                  alert('Verification failed. Please contact support.');
+                }
+              } catch(e){ alert('Network error verifying payment.'); }
+            },
+            prefill: {},
+            notes: { product },
+            theme: { color: '#0E50A1' }
+          });
+          rzp.open();
+        } catch(e){ alert('Network error creating order.'); }
+      });
     })();
   </script>
 </body>

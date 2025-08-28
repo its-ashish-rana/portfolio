@@ -2,6 +2,65 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     try {
+      // Razorpay: create order
+      if (url.pathname === '/razorpay/order' && request.method === 'POST') {
+        const body = await request.json();
+        const amountInPaise = String(Math.round(Number(body.amount || '0') * 100));
+        const currency = body.currency || 'INR';
+        const receipt = body.receipt || ('rcpt_' + crypto.randomUUID());
+        const notes = body.notes || {};
+        if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) {
+          return json({ error: 'missing_razorpay_keys' }, 500);
+        }
+        const res = await fetch('https://api.razorpay.com/v1/orders', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Basic ' + btoa(env.RAZORPAY_KEY_ID + ':' + env.RAZORPAY_KEY_SECRET),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ amount: amountInPaise, currency, receipt, payment_capture: 1, notes })
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          return json({ error: 'create_order_failed', detail: t }, 500);
+        }
+        const order = await res.json();
+        return json({ ok: true, order, keyId: env.RAZORPAY_KEY_ID });
+      }
+
+      // Razorpay: verify signature and optionally fetch payment status
+      if (url.pathname === '/razorpay/verify' && request.method === 'POST') {
+        const body = await request.json();
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature, expectedAmount, product } = body;
+        if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+          return json({ error: 'missing_fields' }, 400);
+        }
+        const enc = new TextEncoder();
+        const key = await crypto.subtle.importKey('raw', enc.encode(env.RAZORPAY_KEY_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        const data = razorpay_order_id + '|' + razorpay_payment_id;
+        const sigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(data));
+        const expSig = hex(new Uint8Array(sigBuf));
+        if (expSig !== razorpay_signature) {
+          return json({ ok: false, reason: 'bad_signature' }, 200);
+        }
+        // Optional: fetch payment to confirm amount and status
+        const pRes = await fetch('https://api.razorpay.com/v1/payments/' + razorpay_payment_id, {
+          headers: { 'Authorization': 'Basic ' + btoa(env.RAZORPAY_KEY_ID + ':' + env.RAZORPAY_KEY_SECRET) }
+        });
+        if (pRes.ok) {
+          const p = await pRes.json();
+          const amtOk = expectedAmount ? (String(Math.round(Number(expectedAmount) * 100)) === String(p.amount)) : true;
+          const statusOk = p.status === 'captured' || p.status === 'authorized';
+          if (!amtOk || !statusOk) {
+            return json({ ok: false, reason: 'amount_or_status' }, 200);
+          }
+        }
+        const ttlSec = parseInt(env.TOKEN_TTL_SECONDS || '3600');
+        const token = await signToken({ product: product || 'ebook', amount: expectedAmount || '99', exp: nowSec() + ttlSec }, env.TOKEN_SECRET);
+        const base = env.DOWNLOAD_BASE || url.origin;
+        const downloadUrl = base + '/download?token=' + encodeURIComponent(token);
+        return json({ ok: true, token, downloadUrl });
+      }
       if (url.pathname === '/token/verify' && request.method === 'GET') {
         const token = url.searchParams.get('token') || '';
         const ok = await verifyToken(token, env.TOKEN_SECRET);
@@ -132,5 +191,11 @@ async function sendMail(env, record) {
     })
   });
   return resp.ok;
+}
+
+function hex(buf) {
+  let s = '';
+  for (let i = 0; i < buf.length; i++) s += buf[i].toString(16).padStart(2, '0');
+  return s;
 }
 
